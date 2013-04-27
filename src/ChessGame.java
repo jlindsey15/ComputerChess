@@ -257,7 +257,7 @@ public class ChessGame {
 			return Integer.MAX_VALUE;
 		}
 		if (depth <= 0) {
-			return Player.evaluateBoard(ChessBoard.getBoard(), currentPlayer);
+			return Player.lazyEval(ChessBoard.getBoard(), currentPlayer, alpha, beta);
 		}
 		int R = 4; //for null move pruning
 		temp = otherPlayer;

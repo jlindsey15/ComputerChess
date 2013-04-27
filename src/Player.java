@@ -449,8 +449,57 @@ public class Player {
 		//return count;
 	}
 
+	public static int evaluateKingBonus(ChessPiece board[][], Player player) {
+		int rank = 0;
+		try {
+			for (Pawn pawn : player.myPawns) {
+				if (!pawn.dead) {
+					int column = pawn.getColumn();
+					int row = pawn.getRow();
+
+					int kingRow = (player.isOnWhiteTeam) ? player.getKing().getRow() + 1 : player.getKing().getRow() - 1;
+					int kingLeftColumn = player.getKing().getColumn() - 1;
+					int kingRightColumn = player.getKing().getColumn() + 1;
+					if ((column == kingLeftColumn || column == kingRightColumn || column == player.getKing().getColumn()) && kingRow == row) {
+						rank += KING_SHIELDED_BONUS;
+					}
+				}
+			}
+
+			for (Pawn pawn : player.opponent.myPawns) {
+				if (!pawn.dead) {
+				if (Math.pow(pawn.getRow() - player.getKing().getRow(), 2) + Math.pow(pawn.getColumn() - player.getKing().getColumn(), 2) <= RADIUS_SQUARED) {
+					rank -= KING_PAWN_STORM;
+				}
+				}
+			}
+
+			for (ChessPiece piece : player.opponent.getMyTeam()) {
+				rank += (int) Math.sqrt(Math.pow(piece.getRow() - player.getKing().getRow(), 2) + Math.pow(piece.getColumn() - player.getKing().getColumn(), 2));
+			}
+		}
+		catch (NullPointerException e) {
+			;
+		}
+
+		return rank;
+	}
+
 	public static int evaluateBoard(ChessPiece board[][], Player player) {
-		return evaluateMaterial(board, player) + evaluateRookBonus(board, player) + evaluatePawnBonus(board, player) + evaluatePieceSquare(board, player);
+		return evaluateMaterial(board, player) + evaluatePieceSquare(board, player) + evaluateRookBonus(board, player) + evaluatePawnBonus(board, player) + evaluateMobility(board, player)  + evaluateKingBonus(board, player) - evaluateKingBonus(board, player.opponent);
+	}
+
+	public static int lazyEval(ChessPiece board[][], Player player, int alpha, int beta) {
+		
+		int counter = evaluateMaterial(board, player) + evaluatePieceSquare(board, player);
+		if (counter < alpha - 50 ) {
+			return counter;
+		}
+		else {
+			counter +=(evaluateRookBonus(board, player) + evaluatePawnBonus(board, player)) + /*evaluateMobility(board, player) +*/ evaluateKingBonus(board, player) - evaluateKingBonus(board, player.opponent);
+			return counter;
+		}
+
 	}
 
 
