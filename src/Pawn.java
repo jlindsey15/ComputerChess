@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 
 public class Pawn extends ChessPiece {
-	private static final String pawnSpriteFilenameWhite = "ChessPiecesImages/PawnWhite.png";
+	private static final String pawnSpriteFilenameWhite = "ChessPiecesImages/PawnWhite.png"; //image file location
 	private static final String pawnSpriteFilenameNonWhite = "ChessPiecesImages/PawnBlack.png";
 	public boolean hasMoved = false;
 
@@ -11,7 +11,7 @@ public class Pawn extends ChessPiece {
 		weight = Player.BISHOP_WEIGHT;
 		
 	}
-	public int[][] getBlackPS() {
+	public int[][] getBlackPS() { //returns black pawn piece square table
 		return PieceSquare.blackPawn;
 	}
 	public ArrayList<Position> possibleMoves() {

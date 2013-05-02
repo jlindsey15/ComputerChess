@@ -18,17 +18,31 @@ public class ChessBoard {
 	/**
 	 * Initializes the chess board and the array of the tiles
 	 */
-	public static void Initialize() {
+	public static void Initialize() { //creates the chessboard
 		//Allocate the array of tiles
-		tiles = new ChessTile[8][8];
-		pieces = new ChessPiece[8][8];
+		tiles = new ChessTile[8][8]; //for rendering
+		pieces = new ChessPiece[8][8]; //for actual game
 
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
-				tiles[x][y] = new ChessTile(100, 100);
+				tiles[x][y] = new ChessTile(100, 100); //for rendering
 			}
 		}
 
+		InitializeChessPieces(); //creates the pieces in the board
+	}
+
+	public static void ResetGame(Player player1, Player player2) { 
+		//resets the game.  Not really needed here but used in genetic learning
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				ChessBoard.removeChessPiece(i, j);
+			}
+		}
+		player1.refreshArrayLists();
+		player2.refreshArrayLists();
+		PieceSquare.whiteScore = -95;
+		PieceSquare.blackScore = -95;
 		InitializeChessPieces();
 	}
 
@@ -157,6 +171,52 @@ public class ChessBoard {
 			currentlySelectedPiece = pieces[row][column];
 			currentMoves = currentlySelectedPiece.removeDangerMoves(currentlySelectedPiece.possibleMoves());
 
+
+
+			//The following code adds castling to the list of possible moves, if applicable.
+			if (ChessGame.player1.getKing().castleAllowed) { //can't castle if king has moved
+				if (ChessGame.player2.opponentIsInCheck()) { //can't castle out of check
+					for (Rook rook : ChessGame.player1.myRooks) { 
+						if (!rook.dead && rook.castleAllowed) { //can't castle if rook has moved
+							if (rook.getColumn() == 0) {
+								Position castlePos = new Position(1, ChessGame.player1.getKing().getRow());
+								castlePos.isCastle = true; //distinguishes from normal moves
+								castlePos.myRook = rook;
+								King king = ChessGame.player1.getKing();
+								int rookColumn = rook.getColumn();
+								int kingColumn = king.getColumn();
+								int theRow = king.getRow();
+								boolean doIt = true;
+								for (int i = Math.min(rookColumn, kingColumn) + 1; i < Math.max(rookColumn, kingColumn); i ++ ) {
+									if (ChessBoard.isOccupied(i, theRow)) { //can't castle through occupied squares
+										doIt = false;
+									}
+								}
+								if (doIt)
+									currentMoves.add(castlePos);
+							}
+							else if (rook.getColumn() == 7) {
+								Position castlePos = new Position(6, ChessGame.player1.getKing().getRow());
+								castlePos.isCastle = true; //distinguishes from normal moves
+								castlePos.myRook = rook;
+								King king = ChessGame.player1.getKing();
+								int rookColumn = rook.getColumn();
+								int kingColumn = king.getColumn();
+								int theRow = king.getRow();
+								boolean doIt = true;
+								for (int i = Math.min(rookColumn, kingColumn) + 1; i < Math.max(rookColumn, kingColumn); i ++ ) {
+									if (ChessBoard.isOccupied(i, theRow)) { //can't castle through occupied squares
+										doIt = false;
+									}
+								}
+								if (doIt)
+									currentMoves.add(castlePos);
+							}
+						}
+					}
+				}
+			}
+
 			//Highlight the selection tile
 			tiles[row][column].setHighlighted(true);
 
@@ -165,8 +225,9 @@ public class ChessBoard {
 				tiles[pos.column][pos.row].setHighlighted(true);
 			}
 		}
-		
+
 		ChessApplication.UpdateDisplay();
+
 	}
 
 	/**
@@ -179,6 +240,9 @@ public class ChessBoard {
 	private static void AttemptMove(int column, int row) {	
 		System.out.println(Player.evaluatePawnBonus(ChessBoard.getBoard(), ChessGame.currentPlayer));
 		System.out.println(Player.evaluatePawnBonus(ChessBoard.getBoard(), ChessGame.otherPlayer));
+		int oldRow = currentlySelectedPiece.getRow();
+		int oldColumn = currentlySelectedPiece.getColumn();
+		ChessPiece oldOccupant = ChessBoard.getBoard()[column][row];
 		//System.exit(0);
 		boolean validMove = false;
 
@@ -197,20 +261,44 @@ public class ChessBoard {
 
 			}
 
-			ChessGame.currentPlayer.makeMove(currentlySelectedPiece, new Position(column, row));
-			
-			if (currentlySelectedPiece instanceof Pawn) {
-				if ((currentlySelectedPiece.isOnWhiteTeam && row == 7) || (!currentlySelectedPiece.isOnWhiteTeam && row == 0)) {
-					System.out.println("CHANGE");
-					//ChessBoard.removeChessPiece(column, row);
-					Queen queen = new Queen(column, row, currentlySelectedPiece.isOnWhiteTeam);
-					queen.player = ChessGame.currentPlayer;
-					queen.LoadImage();
-					ChessBoard.setChessPiece(column,  row,  queen);
-					System.out.println("test city " + tiles[column][row].getOccupant());
-
+			boolean castle = false;
+			if (currentlySelectedPiece instanceof King) {
+				if (Math.abs(column - currentlySelectedPiece.getColumn()) > 1) {
+					castle = true;
 				}
 			}
+
+			if (castle) {
+
+
+				doCastle(currentlySelectedPiece, column, row);
+			}
+			else {
+				ChessGame.currentPlayer.makeMove(currentlySelectedPiece, new Position(column, row));
+			}
+			if (ChessGame.currentPlayer.isOnWhiteTeam) {
+				PieceSquare.whiteScore -= currentlySelectedPiece.getBlackPS()[7 - oldRow][oldColumn];
+				PieceSquare.whiteScore += currentlySelectedPiece.getBlackPS()[7 - row][column];
+				if (oldOccupant != null && !oldOccupant.isOnWhiteTeam) {
+					PieceSquare.blackScore -= oldOccupant.getBlackPS()[row][column];
+				}
+			}
+			else {
+				PieceSquare.blackScore -= currentlySelectedPiece.getBlackPS()[oldRow][oldColumn];
+				PieceSquare.blackScore += currentlySelectedPiece.getBlackPS()[row][column];
+				if (oldOccupant != null && oldOccupant.isOnWhiteTeam) {
+					PieceSquare.whiteScore -= oldOccupant.getBlackPS()[7 - row][column];
+				}
+			}
+
+			if (currentlySelectedPiece instanceof Rook) {
+				((Rook)(currentlySelectedPiece )).castleAllowed = false;
+			}
+			if (currentlySelectedPiece  instanceof King) {
+				((King)(currentlySelectedPiece )).castleAllowed = false;
+			}
+
+
 			ResetSelection();
 			ChessGame.UpdateGame();
 		}
@@ -219,6 +307,127 @@ public class ChessBoard {
 		ResetSelection();
 	}
 
+	public static void undoCastle(ChessPiece piece, Rook rook) {
+
+		piece.player.hasCastled = false;
+		((King)piece).castleAllowed = true;
+		rook.castleAllowed = true;
+		if (piece.isOnWhiteTeam) {
+			ChessBoard.move(piece, new Position(4, piece.getRow()));
+		}
+		else {
+			ChessBoard.move(piece, new Position(4, piece.getRow()));
+		}
+		if (rook.getColumn() == 2) {
+			//System.exit(0);
+			ChessBoard.move(rook, new Position(0, rook.getRow()));
+		}
+		else if (rook.getColumn() == 5) {
+			//System.exit(0);
+			ChessBoard.move(rook, new Position(7, rook.getRow()));
+		}
+		else {
+			//System.exit(0);
+		}
+
+
+	}
+	public static Rook doCastle(ChessPiece currentlySelectedPiece, int column, int row) {
+		//does a castle move.  Part of the ridiculously complicated castle-handling
+		int oldRow = currentlySelectedPiece.getRow();
+		int oldColumn = currentlySelectedPiece.getColumn();
+		((King)currentlySelectedPiece).castleAllowed = false; //can't castle twice!!
+
+		currentlySelectedPiece.player.hasCastled = true; //duh
+		if (!currentlySelectedPiece.player.opponent.opponentIsInCheck()) { //this should always be the case if it's a possible move, but just to make sure
+			Rook rook = null;
+			//Finds the associated rook with the move:
+			if (currentlySelectedPiece.player.isOnWhiteTeam) {
+				if (column == 1) {
+					rook = (Rook)ChessBoard.getBoard()[0][0];
+				}
+				else if (column == 6) {
+					rook = (Rook)ChessBoard.getBoard()[7][0];
+				}
+
+			}
+			else if (!currentlySelectedPiece.player.isOnWhiteTeam) {
+				if (column == 1) {
+					rook = (Rook)ChessBoard.getBoard()[0][7];
+				}
+				else if (column == 6) {
+					rook = (Rook)ChessBoard.getBoard()[7][7];
+				}
+			}
+
+			if (rook == null) { //should never happen, but useful for testing/debugging
+				System.out.println("ooops");
+				ChessBoard.printBoard();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return null;
+			}
+			int oldRookRow = rook.getRow();
+			int oldRookColumn = rook.getColumn();
+			King king = (King)currentlySelectedPiece;
+			int rookColumn = rook.getColumn();
+			int kingColumn = king.getColumn();
+			int theRow = king.getRow();
+			boolean doIt = true;
+			for (int m = Math.min(rookColumn, kingColumn) + 1; m < Math.max(rookColumn, kingColumn); m ++ ) {
+				if (ChessBoard.isOccupied(m, theRow)) { //can't castle through occupied square
+					doIt = false;
+				}
+			}
+			int newRookRow = -1;
+			int newRookColumn = -1;
+			if (doIt) {
+				//Actually do the castle
+
+				if (rookColumn == 0) {
+					ChessBoard.move(rook, new Position(2, theRow));
+					newRookRow = theRow;
+					newRookColumn = 2;
+					ChessBoard.move(currentlySelectedPiece, new Position(column, row));
+				}
+				else if (rookColumn == 7) {
+					ChessBoard.move(rook, new Position(5, theRow));
+					newRookRow = theRow;
+					newRookColumn  = 5;
+					ChessBoard.move(currentlySelectedPiece, new Position(column, row));
+				}
+
+
+			}
+			rook.castleAllowed = false; // can't castle twice!!!
+			Player currentPlayer = currentlySelectedPiece.player;
+			ChessPiece piece = currentlySelectedPiece;
+
+			//increments the Piece Square scores for each player:
+
+			if (currentPlayer.isOnWhiteTeam) {
+				PieceSquare.whiteScore -= piece.getBlackPS()[7 - oldRow][oldColumn];
+				PieceSquare.whiteScore += piece.getBlackPS()[7 - row][column];
+				PieceSquare.whiteScore -= rook.getBlackPS()[7 - oldRow][oldColumn];
+				PieceSquare.whiteScore += rook.getBlackPS()[7 - newRookRow][newRookColumn];
+
+			}
+			else {
+				PieceSquare.blackScore -= piece.getBlackPS()[oldRow][oldColumn];
+				PieceSquare.blackScore += piece.getBlackPS()[row][column];
+				PieceSquare.blackScore -= rook.getBlackPS()[oldRookRow][oldRookColumn];
+				PieceSquare.blackScore += rook.getBlackPS()[newRookRow][newRookColumn];
+
+			}
+			return rook;
+		}
+		return null;
+
+	}
 	public static void SetProperPiecePositions() {
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
@@ -234,7 +443,7 @@ public class ChessBoard {
 	 * @param y - The y coordinate for the chess piece (board coordinates 1 - 8)
 	 * @param piece - The piece to set to the position
 	 */
-	public static void printBoard() {
+	public static void printBoard() { //prints the board in text - useful for testing
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				System.out.print(getBoard()[j][i] + "  ");
@@ -242,7 +451,7 @@ public class ChessBoard {
 			System.out.println();
 		}
 	}
-	public static void setChessPiece(int x, int y, ChessPiece piece) {
+	public static void setChessPiece(int x, int y, ChessPiece piece) { //sets a chess piece at designated location
 		//Set the occupant for that position
 		pieces[x][y] = piece;
 		tiles[x][y].removeOccupant();
@@ -250,7 +459,12 @@ public class ChessBoard {
 		if (piece != null) {
 			try {
 				Player player = piece.player;
+				if (!player.getMyTeam().contains(piece)) {
+					player.getMyTeam().add(piece); //adds it to the players list of people on team if not already there
+					//right now this doesn't actualyl do anything since getMyTeam() doesn't return a reference.  But it should eventually hopefully...
+				}
 
+				//adds the piece to piece-type specific lists if not already present
 				if (piece instanceof Pawn) {
 					if (!player.myPawns.contains(piece)) {
 						player.myPawns.add((Pawn)piece);
@@ -289,51 +503,56 @@ public class ChessBoard {
 		}
 	}
 
-	public static ChessPiece removeChessPiece(int x, int y) {		
+	public static ChessPiece removeChessPiece(int x, int y) {	//removes the piece at that position from the board	
 		ChessPiece piece = pieces[x][y];
 		pieces[x][y] = null;
 		tiles[x][y].removeOccupant();
 		return piece;
 	}
 
-	public static ChessPiece removeChessPiece(ChessPiece piece) {
+	public static ChessPiece removeChessPiece(ChessPiece piece) { //removes the piece from the board
 		return removeChessPiece(piece.getColumn(), piece.getRow());
 	}
 
-	public static ChessPiece[][] getBoard() {
+	public static ChessPiece[][] getBoard() { //returns the chess board
 		return pieces;
 	}
 
-	public static boolean isOccupied(int column, int row) {
+	public static boolean isOccupied(int column, int row) { //duh
 		return pieces[column][row] != null;
 	}
 
-	public static void move(ChessPiece piece, Position pos) {
+	public static void move(ChessPiece piece, Position pos)  { //moves a piece to the desired position.  Replaces anyone already in that position
+
+
 
 		try {
 			ChessPiece thing = ChessBoard.getBoard()[pos.column][pos.row];
+			//does the move:
 			removeChessPiece(piece.getColumn(), piece.getRow());
 			setChessPiece(pos.column, pos.row, piece);
 			piece.setPosition(new Position(pos.column, pos.row));
 			if (thing != null) {
-				
-				thing.player.refreshArrayLists();
+
+				thing.player.refreshArrayLists(); //if you killed a piece, update the dying piece's player's list of pieces
 			}
-			if (piece instanceof Pawn) {
+			if (piece instanceof Pawn) { //pawn promotion code
 				if ((piece.isOnWhiteTeam && pos.row == 7) || (!piece.isOnWhiteTeam && pos.row == 0)) {
 					Queen queen = new Queen(pos.column, pos.row, piece.isOnWhiteTeam);
 					queen.player = ChessGame.currentPlayer;
+					queen.LoadImage();
 					ChessBoard.setChessPiece(pos.column,  pos.row,  queen);
 				}
 			}
 
-		} catch (NullPointerException ex) {}
+
+		} catch (NullPointerException ex) {} //#goodcodingstyle
 	}
 
 
 
 
-	public static void setBoard(ChessPiece[][] board) {
+	public static void setBoard(ChessPiece[][] board) { //not used anywhere as of 5/1/13.  But maybe it will be someday...
 		pieces = board;
 
 		for (int x = 0; x < 8; ++x) {

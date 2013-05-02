@@ -2,14 +2,14 @@ import java.util.ArrayList;
 
 
 public class Queen extends ChessPiece {
-	private static final String queenSpriteFilenameWhite = "ChessPiecesImages/QueenWhite.png";;
-	private static final String queenSpriteFilenameNonWhite = "ChessPiecesImages/QueenBlack.png";;
+	private static final String queenSpriteFilenameWhite = "ChessPiecesImages/QueenWhite.png"; //image file location
+	private static final String queenSpriteFilenameNonWhite = "ChessPiecesImages/QueenBlack.png";
 	public Queen(int theColumn, int theRow, boolean whiteTeam) { //constructor
 		super(theColumn, theRow, whiteTeam, (whiteTeam) ? queenSpriteFilenameWhite : queenSpriteFilenameNonWhite);
 		weight = Player.QUEEN_WEIGHT;
 		
 	}
-	public int[][] getBlackPS() {
+	public int[][] getBlackPS() { //returns black queen piece square table
 		return PieceSquare.blackQueen;
 	}
 	public ArrayList<Position> possibleMoves() {

@@ -1,16 +1,18 @@
 import java.util.ArrayList;
 
 
-public class Bishop extends ChessPiece{
-	private static final String bishopSpriteFilenameWhite = "ChessPiecesImages/BishopWhite.png";;
+public class Bishop extends ChessPiece{ 
+	//Bishop class
+	private static final String bishopSpriteFilenameWhite = "ChessPiecesImages/BishopWhite.png";; //locations of image files
 	private static final String bishopSpriteFilenameNonWhite = "ChessPiecesImages/BishopBlack.png";;
 	
 	public Bishop(int theColumn, int theRow, boolean whiteTeam) { //constructor
 		super(theColumn, theRow, whiteTeam, (whiteTeam) ? bishopSpriteFilenameWhite : bishopSpriteFilenameNonWhite);
-		weight = Player.BISHOP_WEIGHT;
+		weight = Player.BISHOP_WEIGHT; //Material weight for bishop
 
 	}
-	public int[][] getBlackPS() {
+	public int[][] getBlackPS() { 
+		//gets the piece square table for a black bishop.  White bishop's PS tables are accessed by replacing row with 7-row
 		return PieceSquare.blackBishop;
 	}
 	public ArrayList<Position> possibleMoves() { //possible moves for a bishop
@@ -30,7 +32,7 @@ public class Bishop extends ChessPiece{
 		for (ArrayList<Position> line : meta) {
 			returned.addAll(line);
 		}
-		returned = removeInvalid(returned);
+		returned = removeInvalid(returned); //removes moves that are off the board, kill your own piece, etc.
 		return returned;
 
 

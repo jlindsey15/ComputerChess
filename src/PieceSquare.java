@@ -1,8 +1,18 @@
 
 public class PieceSquare {
-	//as of 4/17/13, values taken from http://chessprogramming.wikispaces.com/Simplified+evaluation+function#Piece-Square%20Tables
-	public static int blackScore = -95;
+	//as of 5/1/13, values taken from http://chessprogramming.wikispaces.com/Simplified+evaluation+function#Piece-Square%20Tables
+	//Hopefully will soon be determined by learning
+	//Piece square tables are tables that assign a value to each possible position of each type of piece;
+	//Used in evaluation.
+	
+	//incremented as moves are made and unmade to improve efficiency:
+	public static int blackScore = -95; 
 	public static int whiteScore = -95;
+	
+	
+	//white piece square tables are simply "accessed" by referencing the black PS table
+	//and replacing the row number with 7 - row
+	
 	public static int[][] blackPawn =  {{0,  0,  0,  0,  0,  0,  0,  0},
 			{50, 50, 50, 50, 50, 50, 50, 50},
 			{10, 10, 20, 30, 30, 20, 10, 10},

@@ -2,13 +2,14 @@ import java.util.ArrayList;
 
 
 public class Rook extends ChessPiece {
-	private static final String rookSpriteFilenameWhite = "ChessPiecesImages/RookWhite.png";;
-	private static final String rookSpriteFilenameNonWhite = "ChessPiecesImages/RookBlack.png";;
+	private static final String rookSpriteFilenameWhite = "ChessPiecesImages/RookWhite.png"; //image file locations
+	private static final String rookSpriteFilenameNonWhite = "ChessPiecesImages/RookBlack.png";
+	public boolean castleAllowed = true;
 	public Rook(int theColumn, int theRow, boolean whiteTeam) { //constructor
 		super(theColumn, theRow, whiteTeam, (whiteTeam) ? rookSpriteFilenameWhite : rookSpriteFilenameNonWhite);
 		weight = Player.ROOK_WEIGHT;
 	}
-	public int[][] getBlackPS() {
+	public int[][] getBlackPS() { //returns black rook piece square table
 		return PieceSquare.blackRook;
 	}
 	public ArrayList<Position> possibleMoves() {
