@@ -174,8 +174,10 @@ public class ChessBoard {
 
 
 			//The following code adds castling to the list of possible moves, if applicable.
-			if (ChessGame.player1.getKing().castleAllowed) { //can't castle if king has moved
-				if (ChessGame.player2.opponentIsInCheck()) { //can't castle out of check
+			if (ChessGame.player1.getKing().castleAllowed) {
+				
+				//can't castle if king has moved
+				if (!ChessGame.player2.opponentIsInCheck()) { //can't castle out of check
 					for (Rook rook : ChessGame.player1.myRooks) { 
 						if (!rook.dead && rook.castleAllowed) { //can't castle if rook has moved
 							if (rook.getColumn() == 0) {

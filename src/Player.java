@@ -1,33 +1,37 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class Player {
-	
+
 	//a bunch of constant weights.  Are/will be determined by chess learning
 	public static final int PAWN_WEIGHT = 100;
 	public static final int ROOK_WEIGHT = 500;
-	public static final int BISHOP_WEIGHT = 330;
-	public static final int KNIGHT_WEIGHT = 320;
-	public static final int QUEEN_WEIGHT = 900;
+	public static final int BISHOP_WEIGHT = 335;
+	public static final int KNIGHT_WEIGHT = 325;
+	public static final int QUEEN_WEIGHT = 975;
 	public static final int KING_WEIGHT = 200000000; //super high cause the king is, like, important...
-	public static final int ROOK_ALONE_BONUS = 5;
-	public static final int PAWN_ISOLATION_PENALTY = -3;
-	public static final int PAWN_BACKWARD_PENALTY = -5;
-	public static final int PAWN_DOUBLED_PENALTY = -4;
+	public static final int ROOK_ALONE_BONUS = 10;
+	public static final int PAWN_ISOLATION_PENALTY = -10;
+	public static final int PAWN_BACKWARD_PENALTY = -10;
+	public static final int PAWN_DOUBLED_PENALTY = -25;
 	public static final int KING_SHIELDED_BONUS = 10;
 	public static final int KING_PAWN_STORM = 10;
 	public static final int RADIUS_SQUARED = 4;
+	public static final int BISHOP_PAIR   = 30;
+	public static final int KNIGHT_PAIR = 8;
+	public static final int ROOK_PAIR   = 16;
 
-	
+
 
 	public boolean isOnWhiteTeam;
 	public boolean hasCastled = false;
-	
+
 	public Player opponent;
 	public Player() { //default constructor
 		;
 	}
-	
+
 	//piece arraylists:
 	public  ArrayList<Rook> myRooks = new ArrayList<Rook>();
 	public  ArrayList<Pawn> myPawns = new ArrayList<Pawn>();
@@ -35,8 +39,8 @@ public class Player {
 	public  ArrayList<Queen> myQueens = new ArrayList<Queen>();
 	public  ArrayList<King> myKings = new ArrayList<King>();
 	public ArrayList<Knight> myKnights = new ArrayList<Knight>();
-	
-	
+
+
 	public Player(boolean whiteTeam) { //constructor
 		isOnWhiteTeam = whiteTeam;
 		for (ChessPiece piece : getMyTeam()) {
@@ -80,17 +84,17 @@ public class Player {
 		//Also the pawn's hasMoved boolean is only set to true in this method. This presents a problem during move-searching,
 		//since the hasMoved is not set accurately during simulated moves, but this slight inaccuracy is probably inconsequential
 		//and I don't feel like fixing it./
-		
-		
+
+
 		if (piece.isOnWhiteTeam == isOnWhiteTeam) {
-			
+
 
 			ChessBoard.move(piece, pos);
 			if (piece instanceof Pawn) {
-				
+
 				((Pawn) piece).hasMoved = true;
 			}
-			
+
 		}
 
 	}
@@ -106,7 +110,7 @@ public class Player {
 
 	}
 
-	
+
 	public boolean hasWon() { //checks if the player has won the game
 		if (!opponentIsInCheck()) { //opponent must currently be in check to achieve checkmate (but not for stalemate...)
 			return false;
@@ -191,12 +195,12 @@ public class Player {
 
 	public boolean opponentIsInCheck() { 
 		//checks whether you could attack the opponent's king
-		
+
 		for (ChessPiece piece : getMyTeam()) {
 
 			for (Position movePosition : piece.possibleMoves()) {
 				//check every one of the player's possible moves
-				
+
 				int oldColumn = piece.getColumn(); 
 				int oldRow = piece.getRow();
 				ChessPiece oldOccupant = ChessBoard.getBoard()[movePosition.column][movePosition.row];
@@ -204,7 +208,7 @@ public class Player {
 
 				if (opponent.myKings.size() == 0) { 
 					//if one of your pieces could attack opponent's King, return true
-					
+
 					//undo move:
 					ChessBoard.move(piece, new Position(oldColumn, oldRow));
 					ChessBoard.setChessPiece(movePosition.column,  movePosition.row,  oldOccupant);
@@ -214,7 +218,7 @@ public class Player {
 				//undo move:
 				ChessBoard.move(piece, new Position(oldColumn, oldRow));
 				ChessBoard.setChessPiece(movePosition.column,  movePosition.row,  oldOccupant);
-				
+
 			}
 		}
 
@@ -253,8 +257,26 @@ public class Player {
 				+ BISHOP_WEIGHT * (player.myBishops.size() - player.opponent.myBishops.size())
 				+ KNIGHT_WEIGHT * (player.myKnights.size() - player.opponent.myKnights.size())
 				+ PAWN_WEIGHT * (player.myPawns.size() - player.opponent.myPawns.size());
+		if (player.myBishops.size() == 2) {
+			rank +=BISHOP_PAIR;
+		}
+		if (player.opponent.myBishops.size() == 2) {
+			rank -=BISHOP_PAIR;
+		}
+		if (player.myRooks.size() == 2) {
+			rank += ROOK_PAIR;
+		}
+		if (player.opponent.myRooks.size() == 2) {
+			rank -= ROOK_PAIR;
+		}
+		if (player.myKnights.size() == 2) {
+			rank +=KNIGHT_PAIR;
+		}
+		if (player.opponent.myKnights.size() == 2) {
+			rank -=KNIGHT_PAIR;
+		}
 
- 		return rank;
+		return rank;
 
 	}
 	public static int evaluateMobility(ChessPiece board[][], Player player) {
@@ -311,7 +333,7 @@ public class Player {
 					if (otherPawn.getColumn() == left) {
 						if (otherPawn != pawn) {
 							bonus = 0;
-							
+
 						}
 					}
 				}
@@ -324,14 +346,14 @@ public class Player {
 					if (otherPawn.getColumn() == right) {
 						if (otherPawn != pawn) {
 							bonus = 0;
-							
+
 						}
 					}
 				}
 				count += bonus;
 			}
 			bonus = 0;
-			
+
 			//doubled pawn penalty:
 			for (Pawn otherPawn : player.myPawns) {
 				if (otherPawn.getColumn() == column) {
@@ -344,9 +366,9 @@ public class Player {
 
 
 		}
-		
+
 		//same as above but for opponent:
-		
+
 		for (Pawn pawn : player.opponent.myPawns) {
 			int column = pawn.getColumn();
 			int row = pawn.getRow();
@@ -362,7 +384,7 @@ public class Player {
 					if (otherPawn.getColumn() == left) {
 						if (otherPawn != pawn) {
 							bonus = 0;
-							
+
 						}
 					}
 				}
@@ -375,7 +397,7 @@ public class Player {
 					if (otherPawn.getColumn() == right) {
 						if (otherPawn != pawn) {
 							bonus = 0;
-							
+
 						}
 					}
 				}
@@ -399,17 +421,17 @@ public class Player {
 	public static int evaluatePieceSquare(ChessPiece board[][], Player player) {
 		//easy because we've been incremented piece square values for each team throughout the game.  Evaluated with respect to player.
 		int score = PieceSquare.whiteScore - PieceSquare.blackScore;
-		
+
 		if (player.isOnWhiteTeam) {
 			return score;
 		}
 		else {
-			
+
 			return -score;
 		}
 
 
-		
+
 	}
 
 	public static int evaluateKingBonusHelper(ChessPiece board[][], Player player) {
@@ -432,9 +454,9 @@ public class Player {
 
 			for (Pawn pawn : player.opponent.myPawns) {
 				if (!pawn.dead) {
-				if (Math.pow(pawn.getRow() - player.getKing().getRow(), 2) + Math.pow(pawn.getColumn() - player.getKing().getColumn(), 2) <= RADIUS_SQUARED) {
-					rank -= KING_PAWN_STORM;
-				}
+					if (Math.pow(pawn.getRow() - player.getKing().getRow(), 2) + Math.pow(pawn.getColumn() - player.getKing().getColumn(), 2) <= RADIUS_SQUARED) {
+						rank -= KING_PAWN_STORM;
+					}
 				}
 			}
 
@@ -448,13 +470,13 @@ public class Player {
 
 		return rank;
 	}
-	
+
 	public static int evaluateRookBonus(ChessPiece board[][], Player player) {
 		//rook bonus with respect to player
 		return evaluateRookBonusHelper(board, player) - evaluateRookBonusHelper(board, player.opponent);
 
 	}
-	
+
 	public static int evaluateKingBonus(ChessPiece board[][], Player player) {
 		//king bonus with respect to player
 		return evaluateKingBonusHelper(board, player) - evaluateKingBonusHelper(board, player.opponent);
@@ -469,25 +491,156 @@ public class Player {
 	public static int lazyEval(ChessPiece board[][], Player player, int alpha, int beta) {
 		//returns prematurely if the evaluation is definitely going to be less than alpha
 		int counter = evaluateMaterial(board, player) + evaluatePieceSquare(board, player);
-		
+
 		//bonus for castling:
 		if (player.hasCastled) {
-			counter += 100;
+			counter += 50;
 		}
 		if (player.opponent.hasCastled) {
-			counter -= 100;
+			counter -= 50;
 		}
-		if (counter < alpha - 100 ) { //if the value is already way less than alpha, don't bother doing the more time-intensive calculations
+		
+		if (counter < alpha -200  || counter > beta + 200 ) { //if the value is already way less than alpha, don't bother doing the more time-intensive calculations
 			return counter;
 		}
 		else {
 			//the score is reasonable, so we need to do a full evaluation
 			//mobility evaluation right now is too slow to bother with
-			counter +=(evaluateRookBonus(board, player) + evaluatePawnBonus(board, player)) + /*evaluateMobility(board, player) +*/ evaluateKingBonus(board, player) - evaluateKingBonus(board, player.opponent);
+			counter +=(evaluateRookBonus(board, player) + evaluatePawnBonus(board, player)) + /*evaluateMobility(board, player) +*/ evaluateKingBonus(board, player);
 			return counter;
 		}
 
 	}
+
+	public static int Quiesce(ChessPiece board[][], Player player, int alpha, int beta, int counter ) {
+		//System.out.println(counter + "  counter");
+
+		int standPat = lazyEval(board, player, alpha, beta);
+		if (counter == 0) {
+			return standPat;
+		}
+
+		if( standPat >= beta ) {
+			return beta;
+		} 
+
+		if (alpha > -200000000 && standPat < (alpha - 900) ) {
+			
+			
+	        return alpha;
+	    }
+		if( alpha < standPat ) {
+			alpha = standPat;
+		}
+
+
+		
+		ArrayList<Move> moves = new ArrayList<Move>();
+		for (ChessPiece piece : player.getMyTeam())  {
+			for (Position pos : piece.possibleMoves()) 
+			{
+				//We allow danger moves since the computer will never pick them anyway
+				Move theMove = new Move(pos, piece);
+				if (ChessBoard.isOccupied(theMove.position.column,  theMove.position.row)) {
+					moves.add(theMove);
+				}
+			}
+		}
+
+//		System.out.println(moves.size());
+
+		//Collections.sort(moves);
+
+
+
+		for (Move move : moves)  {
+			if (isBad(move)) {
+				continue;
+			}
+			ChessPiece piece = move.piece;
+			Position pos = move.position;
+			ChessPiece oldOccupant = ChessBoard.getBoard()[pos.column][pos.row];
+			int oldWhiteScore = PieceSquare.whiteScore;
+			int oldBlackScore = PieceSquare.blackScore;
+			int oldColumn = piece.getColumn();
+			int oldRow = piece.getRow();
+			Rook rook = null;
+			if (oldOccupant instanceof King) {
+				return Integer.MAX_VALUE-1;
+			}
+
+			//do piece square incrementation
+
+			if (player.isOnWhiteTeam) {
+				PieceSquare.whiteScore -= piece.getBlackPS()[7 - oldRow][oldColumn];
+				PieceSquare.whiteScore += piece.getBlackPS()[7 - pos.row][pos.column];
+				if (oldOccupant != null && !oldOccupant.isOnWhiteTeam) {
+					PieceSquare.blackScore -= oldOccupant.getBlackPS()[pos.row][pos.column];
+				}
+			}
+			else {
+				PieceSquare.blackScore -= piece.getBlackPS()[oldRow][oldColumn];
+				PieceSquare.blackScore += piece.getBlackPS()[pos.row][pos.column];
+				if (oldOccupant != null && oldOccupant.isOnWhiteTeam) {
+					PieceSquare.whiteScore -= oldOccupant.getBlackPS()[7 - pos.row][pos.column];
+				}
+			}
+			ChessBoard.move(piece,  pos);
+			int score = -Quiesce(board, player.opponent, -beta, -alpha, counter -1 );
+			ChessBoard.move(piece,  new Position(oldColumn, oldRow));
+			ChessBoard.setChessPiece(pos.column,  pos.row,  oldOccupant);
+
+			if( score >= beta )
+				return beta;
+			if( score > alpha )
+				alpha = score;
+		}
+		return alpha;
+	}
+
+	private static boolean isBad(Move move) {
+		if (move.piece instanceof Pawn) return false;
+		if (move.piece.weight - 50 <= ChessBoard.getBoard()[move.position.column][ move.position.row].weight) return false;
+		if (pawnRecapture(move.piece.isOnWhiteTeam, move.position)) return true;
+		return false;
+
+	}
+
+	private static boolean pawnRecapture(boolean whiteTeam, Position pos) {
+		if (whiteTeam) {
+			Position newPos;
+			ChessPiece attacker;
+			newPos = new Position(pos.column + 1, pos.row + 1);
+			if (newPos.isValid()) {
+				attacker = ChessBoard.getBoard()[newPos.column][newPos.row];
+				if (newPos.isValid() && attacker != null & attacker instanceof Pawn && !attacker.isOnWhiteTeam) return true;
+			}
+			newPos = new Position(pos.column - 1, pos.row + 1);
+			if (newPos.isValid()) {
+				
+				attacker = ChessBoard.getBoard()[newPos.column][newPos.row];
+				if (newPos.isValid() && attacker != null & attacker instanceof Pawn && !attacker.isOnWhiteTeam) return true;
+			}
+		}
+		else if (!whiteTeam) {
+			Position newPos;
+			ChessPiece attacker;
+			newPos = new Position(pos.column + 1, pos.row - 1);
+			if (newPos.isValid()) {
+				attacker = ChessBoard.getBoard()[newPos.column][newPos.row];
+				if (newPos.isValid() && attacker != null & attacker instanceof Pawn && attacker.isOnWhiteTeam) return true;
+			}
+			newPos = new Position(pos.column - 1, pos.row - 1);
+			if (newPos.isValid()) {
+				
+				attacker = ChessBoard.getBoard()[newPos.column][newPos.row];
+				if (newPos.isValid() && attacker != null & attacker instanceof Pawn && attacker.isOnWhiteTeam) return true;
+			}
+		}
+
+		return false;
+	}
+
 
 
 }

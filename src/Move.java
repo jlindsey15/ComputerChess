@@ -11,7 +11,8 @@ public class Move implements Comparable {
 	}
 	
 	public int compareTo(Object theMove) { //not used yet but could be
-		return (((Move)theMove).evaluateMove() - this.evaluateMove());
+		Move otherMove = (Move)theMove;
+		return (ChessBoard.getBoard()[position.column][position.row].weight - piece.weight - (ChessBoard.getBoard()[otherMove.position.column][otherMove.position.row].weight - otherMove.piece.weight));
 		
 	}
 	public int evaluateMove() { //as above, not used currently

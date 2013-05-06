@@ -23,7 +23,7 @@ public class ChessGame {
 	public static Player otherPlayer;
 
 	//time left in game in seconds - initial value is variable depending on game rules
-	public static int timeLeft = 60*15;
+	public static int timeLeft = 60*20;
 
 	//moves made by computer
 	public static int movesMade = 0; 
@@ -98,7 +98,7 @@ public class ChessGame {
 		if (movesMade >= 40) {
 			maxTime = timeLeft/10 - 1;
 		}
-		maxTime = timeLeft/(45 - movesMade) - 1; 
+		else maxTime = timeLeft/(45 - movesMade) - 1; 
 		if (maxTime < 3) {
 			maxTime = 3;
 		}
@@ -120,7 +120,7 @@ public class ChessGame {
 
 
 		System.out.println("*******************************888");
-		for (int i = 1; i <= depth; i++) {
+		for (int i = 2; i <= depth; i+=2) {
 			//iterative move deepening : first do 1-ply search, then 2-ply, then 3-ply, etc. till time runs out
 			moves.clear();
 			//creates list of all possible moves:
@@ -161,7 +161,11 @@ public class ChessGame {
 									Move castler = new Move(castlePos, king);
 									castler.isCastle = true;
 									//adds the castle move
-									moves.add(castler);
+									if (castler.equals(pv[0])) { 
+										//move ordering for increased alpha beta pruning efficiency - take the best move from the last ply depth iteration and examine it first
+										moves.add(0, castler);
+									}
+									else moves.add(castler);
 								}
 							}
 							else if (rook.getColumn() == 7) {
@@ -183,7 +187,11 @@ public class ChessGame {
 									Move castler = new Move(castlePos, king);
 									castler.isCastle = true;
 									//ads the castle move
-									moves.add(castler);
+									if (castler.equals(pv[0])) { 
+										//move ordering for increased alpha beta pruning efficiency - take the best move from the last ply depth iteration and examine it first
+										moves.add(0, castler);
+									}
+									else moves.add(castler);
 								}
 							}
 						}
