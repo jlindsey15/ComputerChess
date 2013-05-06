@@ -17,7 +17,7 @@ public class ChessApplication {
 	 */
 	public static void InitializeChessApplication(int width, int height) {
 		//Create the main window
-		frame = new JFrame("Chess Bot Application");
+		frame = new JFrame("The Eviscerator 6000");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setResizable(false);
 		frame.setSize(width, height);

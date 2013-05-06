@@ -14,7 +14,7 @@ public class Player {
 	public static final int ROOK_ALONE_BONUS = 10;
 	public static final int PAWN_ISOLATION_PENALTY = -10;
 	public static final int PAWN_BACKWARD_PENALTY = -10;
-	public static final int PAWN_DOUBLED_PENALTY = -25;
+	public static final int PAWN_DOUBLED_PENALTY = -12;
 	public static final int KING_SHIELDED_BONUS = 10;
 	public static final int KING_PAWN_STORM = 10;
 	public static final int RADIUS_SQUARED = 4;

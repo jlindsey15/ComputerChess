@@ -98,11 +98,11 @@ public class ChessGame {
 		if (movesMade >= 40) {
 			maxTime = timeLeft/10 - 1;
 		}
-		else maxTime = timeLeft/(45 - movesMade) - 1; 
+		else maxTime = timeLeft/(45 - movesMade) - 2; 
 		if (maxTime < 3) {
 			maxTime = 3;
 		}
-		System.out.println("max time" + maxTime + " " + Player.evaluatePieceSquare(ChessBoard.getBoard(), currentPlayer));
+		System.out.println("max time" + maxTime);
 
 		//start Time of move
 
@@ -119,8 +119,8 @@ public class ChessGame {
 
 
 
-		System.out.println("*******************************888");
-		for (int i = 2; i <= depth; i+=2) {
+		//System.out.println("*******************************888");
+		for (int i = 1; i <= depth; i++) {
 			//iterative move deepening : first do 1-ply search, then 2-ply, then 3-ply, etc. till time runs out
 			moves.clear();
 			//creates list of all possible moves:
@@ -214,7 +214,7 @@ public class ChessGame {
 			for (int j = 0; j < moves.size(); j++) {
 				if ((int)(System.nanoTime()/1000000000) - startTime > maxTime) { 
 					//if computer has run out of time to make the move
-					System.out.println("incompletely finished searching to depth " + currentDepth);
+					System.out.println("incompletely finished searching to depth " + currentDepth + "move " + counter);
 					keepGoing = false;
 					break;
 				}
@@ -222,7 +222,7 @@ public class ChessGame {
 
 				Move move = moves.get(j);
 				counter++;
-				System.out.println("Move " + counter + " out of " + moves.size());
+				//System.out.println("Move " + counter + " out of " + moves.size());
 
 				piece = move.piece;
 				pos = move.position;
@@ -328,9 +328,9 @@ public class ChessGame {
 
 				if( score > max ) {
 					//if you've found a move better than any others, change the best move to that one
-					System.out.println("score " + score);
-					System.out.println("max " + max);
-					System.out.println(move.piece);
+					//System.out.println("score " + score);
+					//System.out.println("max " + max);
+					//System.out.println(move.piece);
 					max = score;
 					bestMove = move;
 					pv[0] = move; //update principle variation - used in move ordering
