@@ -52,6 +52,7 @@ public class Player {
 			if (piece instanceof King) myKings.add((King)piece);
 			if (piece instanceof Queen) myQueens.add((Queen)piece);
 			piece.player = this;
+			
 		}
 
 
@@ -65,6 +66,7 @@ public class Player {
 		myQueens.clear();
 		myKings.clear();
 		for (ChessPiece piece : getMyTeam()) {
+			
 			//add piece to appropriate arraylist
 			if (piece instanceof Pawn) myPawns.add((Pawn)piece);
 			if (piece instanceof Rook) myRooks.add((Rook)piece);
@@ -74,6 +76,7 @@ public class Player {
 			if (piece instanceof Queen) myQueens.add((Queen)piece);
 			piece.player = this;
 		}
+		
 
 	}
 	public void setOpponent(Player opp) {
@@ -434,10 +437,11 @@ public class Player {
 
 	}
 
-	public static int evaluateKingBonusHelper(ChessPiece board[][], Player player) {
+	public static int evaluateKingBonusHelper(ChessPiece board[][], Player player) throws Exception {
 		//bonus for king safety in various different ways.  Evaluated only for player
-		int rank = 0;
 		try {
+		int rank = 0;
+		
 			for (Pawn pawn : player.myPawns) {
 				if (!pawn.dead) {
 					int column = pawn.getColumn();
@@ -463,12 +467,12 @@ public class Player {
 			for (ChessPiece piece : player.opponent.getMyTeam()) {
 				rank += (int) Math.sqrt(Math.pow(piece.getRow() - player.getKing().getRow(), 2) + Math.pow(piece.getColumn() - player.getKing().getColumn(), 2));
 			}
-		}
-		catch (NullPointerException e) {
-			;
-		}
+		
+		
 
 		return rank;
+		}
+		catch (Exception e) {return 0;}
 	}
 
 	public static int evaluateRookBonus(ChessPiece board[][], Player player) {
@@ -479,7 +483,12 @@ public class Player {
 
 	public static int evaluateKingBonus(ChessPiece board[][], Player player) {
 		//king bonus with respect to player
-		return evaluateKingBonusHelper(board, player) - evaluateKingBonusHelper(board, player.opponent);
+		try {
+			return evaluateKingBonusHelper(board, player) - evaluateKingBonusHelper(board, player.opponent);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			return 0;
+		}
 
 	}
 

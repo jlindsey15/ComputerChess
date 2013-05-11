@@ -8,6 +8,7 @@ import java.util.Collections;
 5. En passant
 6. piece square learning
 7. additional efficiency improvements*/
+//TODO: no castling through check
 
 
 public class ChessGame {
@@ -23,7 +24,7 @@ public class ChessGame {
 	public static Player otherPlayer;
 
 	//time left in game in seconds - initial value is variable depending on game rules
-	public static int timeLeft = 60*20;
+	public static int timeLeft = 60*2;
 
 	//moves made by computer
 	public static int movesMade = 0; 
@@ -44,19 +45,20 @@ public class ChessGame {
 
 	public static void InitializeGame() { 
 		//starts game - self-explanatory
-		player1 = new Player(true);
-		player2 = new Player(false);
+		player1 = new Player(false);
+		player2 = new Player(true);
 
 		player1.setOpponent(player2); 
 		player2.setOpponent(player1);
-		currentPlayer = player1;
-		otherPlayer = player2;
+		currentPlayer = player2;
+		otherPlayer = player1;
+
 	}
 
 	public static void UpdateGame() {
 		//this is called when it's the computer's turn to move, so we set currentPlayer and otherPlayer accordingly
-		currentPlayer = player2;
-		otherPlayer = player1;
+		currentPlayer = player1;
+		otherPlayer = player2;
 
 		if (otherPlayer.hasStaleMate()) { //stop if stalemate
 			System.out.println("Stalemate - Moves made to tie  game: " + moveCount);
@@ -79,12 +81,13 @@ public class ChessGame {
 		ChessApplication.UpdateDisplay();
 
 		//now it's the human's turn:
-		currentPlayer = player1;
-		otherPlayer = player2;
+		currentPlayer = player2;
+		otherPlayer = player1;
 
 	}
 
 	private static void UpdateAI(ArrayList<ChessPiece> pieces) {
+
 		//This method is where it's at
 
 		long time = System.nanoTime();
@@ -169,7 +172,7 @@ public class ChessGame {
 								}
 							}
 							else if (rook.getColumn() == 7) {
-								Position castlePos = new Position(6, currentPlayer.getKing().getRow());
+								Position castlePos = new Position(5, currentPlayer.getKing().getRow());
 								castlePos.isCastle = true;
 								castlePos.myRook = rook;
 								King king = currentPlayer.getKing();
@@ -199,6 +202,7 @@ public class ChessGame {
 				}
 			}
 
+
 			//the current depth is, well, the current depth...
 			currentDepth = i;
 
@@ -212,6 +216,7 @@ public class ChessGame {
 			Position pos;
 
 			for (int j = 0; j < moves.size(); j++) {
+
 				if ((int)(System.nanoTime()/1000000000) - startTime > maxTime) { 
 					//if computer has run out of time to make the move
 					System.out.println("incompletely finished searching to depth " + currentDepth + "move " + counter);
@@ -222,7 +227,7 @@ public class ChessGame {
 
 				Move move = moves.get(j);
 				counter++;
-				//System.out.println("Move " + counter + " out of " + moves.size());
+				System.out.println("Move " + counter + " out of " + moves.size());
 
 				piece = move.piece;
 				pos = move.position;
@@ -328,9 +333,9 @@ public class ChessGame {
 
 				if( score > max ) {
 					//if you've found a move better than any others, change the best move to that one
-					//System.out.println("score " + score);
-					//System.out.println("max " + max);
-					//System.out.println(move.piece);
+					System.out.println("score " + score);
+					System.out.println("max " + max);
+					System.out.println(move.piece);
 					max = score;
 					bestMove = move;
 					pv[0] = move; //update principle variation - used in move ordering
@@ -403,10 +408,10 @@ public class ChessGame {
 		int otherKings = otherPlayer.myKings.size();
 		int currentKings = currentPlayer.myKings.size();
 
-		
+
 		// nextBoard.showBoard(
 
-		
+
 		if (depth <= 0) {
 			//evaluate the board using heuristics if you've reached the depth limit
 			return Player.lazyEval(ChessBoard.getBoard(), currentPlayer, alpha, beta);
@@ -418,17 +423,17 @@ public class ChessGame {
 		temp = otherPlayer;
 		otherPlayer = currentPlayer;
 		currentPlayer = temp;
-		
+
 		//null move pruning:
 		score = -negaMax (depth - R, -beta, -beta + 1); 
-		
-		
+
+
 		if (score >= beta ) {
-		      // 
+			// 
 			temp = otherPlayer;
 			otherPlayer = currentPlayer;
 			currentPlayer = temp;
-		      return beta; // null move pruning
+			return beta; // null move pruning
 		}
 		temp = otherPlayer;
 		otherPlayer = currentPlayer;
@@ -453,9 +458,10 @@ public class ChessGame {
 
 		//adds castling to possible moves if applicable
 
-		if (currentPlayer.getKing().castleAllowed && !currentPlayer.hasCastled) { //can't castle if king has moved
-			//note that we're allowing castling out of check in these fake simulated moves.  This produces a bit of inaccuracy, but
-			//the additional speed gained by not having to check for checks each time is worth it
+		if (currentPlayer.myKings.size() > 0) {
+			if (currentPlayer.getKing().castleAllowed && !currentPlayer.hasCastled) { //can't castle if king has moved
+				//note that we're allowing castling out of check in these fake simulated moves.  This produces a bit of inaccuracy, but
+				//the additional speed gained by not having to check for checks each time is worth it
 				for (Rook rook : currentPlayer.myRooks) {
 					if (rook.castleAllowed) { //can't castle if rook has moved
 						if (rook.getColumn() == 0) {
@@ -481,7 +487,7 @@ public class ChessGame {
 							}
 						}
 						else if (rook.getColumn() == 7) {
-							Position castlePos = new Position(6, currentPlayer.getKing().getRow());
+							Position castlePos = new Position(5, currentPlayer.getKing().getRow());
 							castlePos.isCastle = true;
 							castlePos.myRook = rook;
 							King king = currentPlayer.getKing();
@@ -504,8 +510,9 @@ public class ChessGame {
 						}
 					}
 				}
-			
 
+
+			}
 		}
 
 
@@ -514,7 +521,7 @@ public class ChessGame {
 		int movesSearched = 0;
 
 		for (Move move : moves) {
-			
+
 			boolean storedCastleAllowed = true; //used in castle undoing
 
 			ChessPiece piece = move.piece;
@@ -539,7 +546,7 @@ public class ChessGame {
 				//if you killed their king you won - return infinity basically
 				return Integer.MAX_VALUE-1;
 			}
-			
+
 			//do piece square incrementation
 
 			if (currentPlayer.isOnWhiteTeam) {
@@ -559,7 +566,7 @@ public class ChessGame {
 
 			if (move.isCastle) {
 				//do castle
-				
+
 				Rook aRook = ChessBoard.doCastle(piece, move.position.column, move.position.row);
 				rook = move.position.myRook;
 
@@ -573,7 +580,7 @@ public class ChessGame {
 
 			}
 
-			
+
 			//switch current player
 			temp = otherPlayer;
 			otherPlayer = currentPlayer;
@@ -584,7 +591,7 @@ public class ChessGame {
 				// First move - searched completely
 				score = -negaMax(depth - 1, -beta, -alpha);
 			}
-				
+
 			else {
 				if(movesSearched >= FullDepthMoves && depth >= ReductionLimit) //late move reductions
 					// Search with reduced depth:
@@ -600,7 +607,7 @@ public class ChessGame {
 			}
 
 			//switch players back
-			
+
 			temp = otherPlayer;
 			otherPlayer = currentPlayer;
 			currentPlayer = temp;
@@ -615,7 +622,7 @@ public class ChessGame {
 				ChessBoard.move(piece,  new Position(oldColumn, oldRow));
 				ChessBoard.setChessPiece(pos.column,  pos.row,  oldOccupant);
 
-				
+
 				if (piece instanceof Rook) {
 					((Rook)(piece)).castleAllowed = storedCastleAllowed;
 
@@ -625,7 +632,7 @@ public class ChessGame {
 				}
 
 			}
-			
+
 			//undo piece sqare incrementations
 			PieceSquare.whiteScore = oldWhiteScore;
 			PieceSquare.blackScore = oldBlackScore;

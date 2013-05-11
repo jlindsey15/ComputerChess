@@ -70,13 +70,15 @@ public class ChessBoard {
 		new Bishop(2, 7, false);
 		new Bishop(5, 7, false);
 		//white queen:
-		new Queen(3, 0, true);
+		new Queen(4, 0, true);
 		//black queen:
-		new Queen(3, 7, false);
+		new Queen(4, 7, false);
 		//white king:
-		new King(4, 0, true);
+		new King(3, 0, true);
 		//black king:
-		new King(4, 7, false);
+		new King(3, 7, false);
+		
+		
 	}
 
 	/**
@@ -104,10 +106,10 @@ public class ChessBoard {
 		for (int y = 0; y < 8; ++y) {
 			for (int x = 0; x < 8; ++x) {				
 				//Check to see the position of the tile and determine the color
-				if (x % 2 != 0 && y % 2 == 0) tiles[x][y].SetColor(firstTileColor);
-				else if (x % 2 == 0 && y % 2 != 0) tiles[x][y].SetColor(firstTileColor);
-				else if (x % 2 == 0 && y % 2 == 0) tiles[x][y].SetColor(secondTileColor);
-				else if (x % 2 != 0 && y % 2 != 0) tiles[x][y].SetColor(secondTileColor);
+				if (x % 2 != 0 && y % 2 == 0) tiles[x][y].SetColor(secondTileColor);
+				else if (x % 2 == 0 && y % 2 != 0) tiles[x][y].SetColor(secondTileColor);
+				else if (x % 2 == 0 && y % 2 == 0) tiles[x][y].SetColor(firstTileColor);
+				else if (x % 2 != 0 && y % 2 != 0) tiles[x][y].SetColor(firstTileColor);
 
 				//Add the tile to the panel
 				if (pieces[x][y] != null) {
@@ -174,17 +176,17 @@ public class ChessBoard {
 
 
 			//The following code adds castling to the list of possible moves, if applicable.
-			if (ChessGame.player1.getKing().castleAllowed) {
+			if (ChessGame.currentPlayer.getKing().castleAllowed) {
 				
 				//can't castle if king has moved
 				if (!ChessGame.player2.opponentIsInCheck()) { //can't castle out of check
-					for (Rook rook : ChessGame.player1.myRooks) { 
+					for (Rook rook : ChessGame.currentPlayer.myRooks) { 
 						if (!rook.dead && rook.castleAllowed) { //can't castle if rook has moved
 							if (rook.getColumn() == 0) {
-								Position castlePos = new Position(1, ChessGame.player1.getKing().getRow());
+								Position castlePos = new Position(1, ChessGame.currentPlayer.getKing().getRow());
 								castlePos.isCastle = true; //distinguishes from normal moves
 								castlePos.myRook = rook;
-								King king = ChessGame.player1.getKing();
+								King king = ChessGame.currentPlayer.getKing();
 								int rookColumn = rook.getColumn();
 								int kingColumn = king.getColumn();
 								int theRow = king.getRow();
@@ -198,10 +200,10 @@ public class ChessBoard {
 									currentMoves.add(castlePos);
 							}
 							else if (rook.getColumn() == 7) {
-								Position castlePos = new Position(6, ChessGame.player1.getKing().getRow());
+								Position castlePos = new Position(5, ChessGame.currentPlayer.getKing().getRow());
 								castlePos.isCastle = true; //distinguishes from normal moves
 								castlePos.myRook = rook;
-								King king = ChessGame.player1.getKing();
+								King king = ChessGame.currentPlayer.getKing();
 								int rookColumn = rook.getColumn();
 								int kingColumn = king.getColumn();
 								int theRow = king.getRow();
@@ -315,16 +317,16 @@ public class ChessBoard {
 		((King)piece).castleAllowed = true;
 		rook.castleAllowed = true;
 		if (piece.isOnWhiteTeam) {
-			ChessBoard.move(piece, new Position(4, piece.getRow()));
+			ChessBoard.move(piece, new Position(3, piece.getRow()));
 		}
 		else {
-			ChessBoard.move(piece, new Position(4, piece.getRow()));
+			ChessBoard.move(piece, new Position(3, piece.getRow()));
 		}
 		if (rook.getColumn() == 2) {
 			//System.exit(0);
 			ChessBoard.move(rook, new Position(0, rook.getRow()));
 		}
-		else if (rook.getColumn() == 5) {
+		else if (rook.getColumn() == 4) {
 			//System.exit(0);
 			ChessBoard.move(rook, new Position(7, rook.getRow()));
 		}
@@ -348,7 +350,7 @@ public class ChessBoard {
 				if (column == 1) {
 					rook = (Rook)ChessBoard.getBoard()[0][0];
 				}
-				else if (column == 6) {
+				else if (column == 5) {
 					rook = (Rook)ChessBoard.getBoard()[7][0];
 				}
 
@@ -357,7 +359,7 @@ public class ChessBoard {
 				if (column == 1) {
 					rook = (Rook)ChessBoard.getBoard()[0][7];
 				}
-				else if (column == 6) {
+				else if (column == 5) {
 					rook = (Rook)ChessBoard.getBoard()[7][7];
 				}
 			}
@@ -397,7 +399,7 @@ public class ChessBoard {
 					ChessBoard.move(currentlySelectedPiece, new Position(column, row));
 				}
 				else if (rookColumn == 7) {
-					ChessBoard.move(rook, new Position(5, theRow));
+					ChessBoard.move(rook, new Position(4, theRow));
 					newRookRow = theRow;
 					newRookColumn  = 5;
 					ChessBoard.move(currentlySelectedPiece, new Position(column, row));
@@ -535,7 +537,7 @@ public class ChessBoard {
 			setChessPiece(pos.column, pos.row, piece);
 			piece.setPosition(new Position(pos.column, pos.row));
 			if (thing != null) {
-
+				
 				thing.player.refreshArrayLists(); //if you killed a piece, update the dying piece's player's list of pieces
 			}
 			if (piece instanceof Pawn) { //pawn promotion code
