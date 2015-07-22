@@ -12,7 +12,7 @@ public class Knight extends ChessPiece {
 	public int[][] getBlackPS() { //gets the knight's piece square table
 		return PieceSquare.blackKnight;
 	}
-	public ArrayList<Position> possibleMoves() { //all possible knight moves - this is how knights work...
+	public ArrayList<Position> possibleSwagMoves() { //all possible knight moves - this is how knights work...
 		ArrayList<Position> returned = new ArrayList<Position>();
 		int c = getColumn();
 		int r = getRow();

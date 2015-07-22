@@ -15,7 +15,7 @@ public class Bishop extends ChessPiece{
 		//gets the piece square table for a black bishop.  White bishop's PS tables are accessed by replacing row with 7-row
 		return PieceSquare.blackBishop;
 	}
-	public ArrayList<Position> possibleMoves() { //possible moves for a bishop
+	public ArrayList<Position> possibleSwagMoves() { //possible moves for a bishop
 
 		ArrayList<Position> returned = new ArrayList<Position>();
 		//gives all the possible "lines" of movement

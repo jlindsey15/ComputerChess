@@ -23,7 +23,7 @@ public class ChessImageView extends JPanel {
 	public ChessImageView(String filename) {
 		if (filename == "") return;
 		try {
-			image = ImageIO.read(new File(filename));
+			image = ImageIO.read(ChessImageView.class.getResourceAsStream(filename));
 		} catch (IOException ex) {
 			System.out.println("Unable to load image file: " + filename + "\n\n\n");
 			ex.printStackTrace();

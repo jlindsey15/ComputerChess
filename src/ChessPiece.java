@@ -186,8 +186,11 @@ public abstract class ChessPiece { //superclass for all chess pieces
 	}
 	
 	
+	public ArrayList<Position> possibleMoves() {
+		if (dead) return new ArrayList<Position>();
+		else return possibleSwagMoves();
+	}
 	
-	
-	public abstract ArrayList<Position> possibleMoves(); //implemented by subclasses, obvi different for each one
+	public abstract ArrayList<Position> possibleSwagMoves(); //implemented by subclasses, obvi different for each one
 	
 }

@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 
-
 public class Queen extends ChessPiece {
 	private static final String queenSpriteFilenameWhite = "ChessPiecesImages/QueenWhite.png"; //image file location
 	private static final String queenSpriteFilenameNonWhite = "ChessPiecesImages/QueenBlack.png";
@@ -12,7 +11,7 @@ public class Queen extends ChessPiece {
 	public int[][] getBlackPS() { //returns black queen piece square table
 		return PieceSquare.blackQueen;
 	}
-	public ArrayList<Position> possibleMoves() {
+	public ArrayList<Position> possibleSwagMoves() {
 		ArrayList<Position> returned = new ArrayList<Position>();
 		//gives all the possible "lines" of movement
 		ArrayList<Position> rightUp = getPositionsInDirection(1, 1);

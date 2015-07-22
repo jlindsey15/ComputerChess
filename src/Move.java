@@ -5,6 +5,8 @@ public class Move implements Comparable {
 	public Position position;
 	public ChessPiece piece;
 	public boolean isCastle = false;
+	public MoveInfo moveinfo;
+	public Move pvNext;
 	public Move(Position pos, ChessPiece thing) {
 		position = pos;
 		piece = thing;

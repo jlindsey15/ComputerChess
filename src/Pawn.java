@@ -9,12 +9,13 @@ public class Pawn extends ChessPiece {
 	public Pawn(int theColumn, int theRow, boolean whiteTeam) { //constructor
 		super(theColumn, theRow, whiteTeam, (whiteTeam) ? pawnSpriteFilenameWhite : pawnSpriteFilenameNonWhite);
 		weight = Player.BISHOP_WEIGHT;
+	
 		
 	}
 	public int[][] getBlackPS() { //returns black pawn piece square table
 		return PieceSquare.blackPawn;
 	}
-	public ArrayList<Position> possibleMoves() {
+	public ArrayList<Position> possibleSwagMoves() {
 		ArrayList<Position> returned = new ArrayList<Position>();
 		int upOrDown;
 		if (isOnWhiteTeam) { //white pawns move up

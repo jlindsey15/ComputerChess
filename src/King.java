@@ -25,7 +25,7 @@ public class King extends ChessPiece {
 		}
 		return returned;
 	}
-	public ArrayList<Position> possibleMoves() { //returns all possible moves for a king
+	public ArrayList<Position> possibleSwagMoves() { //returns all possible moves for a king
 		ArrayList<Position> returned = new ArrayList<Position>();
 		for (int i = -1; i <=1; i++) { //defines the square around the king, not including the king's space
 			for (int j = -1; j <=1; j++) {

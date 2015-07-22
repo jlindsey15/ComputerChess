@@ -12,7 +12,7 @@ public class Rook extends ChessPiece {
 	public int[][] getBlackPS() { //returns black rook piece square table
 		return PieceSquare.blackRook;
 	}
-	public ArrayList<Position> possibleMoves() {
+	public ArrayList<Position> possibleSwagMoves() {
 		ArrayList<Position> returned = new ArrayList<Position>();
 		//gives all the possible "lines" of movement
 		ArrayList<Position> right = getPositionsInDirection(1, 0);
@@ -31,6 +31,7 @@ public class Rook extends ChessPiece {
 		returned = removeInvalid(returned);
 		//System.out.println("rook " + returned.size());
 		return returned;
+
 	}
 
 }

@@ -9,9 +9,28 @@ public class ChessMouseListener implements MouseListener { //checks for mouse cl
 	public void mouseReleased(MouseEvent event) {}
 	
 	public void mousePressed(MouseEvent event) {
+		ChessGame.isComputersTurn = true;
+		
+		if(event.isControlDown()&&event.isShiftDown()){
+			while (true) {
+				System.out.println("swagging");
+				if (!ChessGame.currentlyPondering) {
+					Undo.undo();
+					break;
+				}
+			}
+			
+			return;
+		}
 		int row = (event.getX()/100) ;
 		int column = (event.getY()/100) ;
 								
-		ChessBoard.SelectionMade(row, column, true);
+		while (true) {
+			System.out.println("swagging");
+			if (!ChessGame.currentlyPondering) {
+				ChessBoard.SelectionMade(row, column, ChessGame.currentPlayer.isOnWhiteTeam);
+				break;
+			}
+		}
 	}
 }

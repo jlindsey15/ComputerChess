@@ -77,8 +77,8 @@ public class ChessBoard {
 		new King(3, 0, true);
 		//black king:
 		new King(3, 7, false);
-		
-		
+
+
 	}
 
 	/**
@@ -176,10 +176,10 @@ public class ChessBoard {
 
 
 			//The following code adds castling to the list of possible moves, if applicable.
-			if (ChessGame.currentPlayer.getKing().castleAllowed) {
-				
+			if ( currentlySelectedPiece instanceof King && ChessGame.currentPlayer.getKing().castleAllowed) {
+
 				//can't castle if king has moved
-				if (!ChessGame.player2.opponentIsInCheck()) { //can't castle out of check
+				if (!ChessGame.otherPlayer.opponentIsInCheck()) { //can't castle out of check
 					for (Rook rook : ChessGame.currentPlayer.myRooks) { 
 						if (!rook.dead && rook.castleAllowed) { //can't castle if rook has moved
 							if (rook.getColumn() == 0) {
@@ -192,7 +192,7 @@ public class ChessBoard {
 								int theRow = king.getRow();
 								boolean doIt = true;
 								for (int i = Math.min(rookColumn, kingColumn) + 1; i < Math.max(rookColumn, kingColumn); i ++ ) {
-									if (ChessBoard.isOccupied(i, theRow)) { //can't castle through occupied squares
+									if (ChessBoard.isOccupied(i, theRow) || ChessBoard.isThreatened(i, theRow, ChessGame.currentPlayer.opponent)) { //can't castle through occupied squares
 										doIt = false;
 									}
 								}
@@ -209,7 +209,7 @@ public class ChessBoard {
 								int theRow = king.getRow();
 								boolean doIt = true;
 								for (int i = Math.min(rookColumn, kingColumn) + 1; i < Math.max(rookColumn, kingColumn); i ++ ) {
-									if (ChessBoard.isOccupied(i, theRow)) { //can't castle through occupied squares
+									if (ChessBoard.isOccupied(i, theRow) || ChessBoard.isThreatened(i, theRow, ChessGame.currentPlayer.opponent)) { //can't castle through occupied squares
 										doIt = false;
 									}
 								}
@@ -228,7 +228,7 @@ public class ChessBoard {
 			for (Position pos : currentMoves) {
 				tiles[pos.column][pos.row].setHighlighted(true);
 			}
-		}
+		}//Snapshot function?
 
 		ChessApplication.UpdateDisplay();
 
@@ -242,6 +242,8 @@ public class ChessBoard {
 	 * @param row - The row of the new position
 	 */
 	private static void AttemptMove(int column, int row) {	
+		int oldWhite = PieceSquare.whiteScore;
+		int oldBlack = PieceSquare.blackScore;
 		System.out.println(Player.evaluatePawnBonus(ChessBoard.getBoard(), ChessGame.currentPlayer));
 		System.out.println(Player.evaluatePawnBonus(ChessBoard.getBoard(), ChessGame.otherPlayer));
 		int oldRow = currentlySelectedPiece.getRow();
@@ -260,7 +262,10 @@ public class ChessBoard {
 
 		//If we clicked a valid move then move the piece to that place
 		if (validMove) {
+			boolean storedCastleAllowed = false;
+			boolean storedHasCastled = ChessGame.currentPlayer.hasCastled;
 			if (currentlySelectedPiece instanceof Pawn) {
+				storedCastleAllowed = ((Pawn) currentlySelectedPiece).hasMoved;
 				((Pawn) currentlySelectedPiece).hasMoved = true;
 
 			}
@@ -272,10 +277,13 @@ public class ChessBoard {
 				}
 			}
 
+			if(currentlySelectedPiece instanceof Rook)
+				storedCastleAllowed = ((Rook)(currentlySelectedPiece)).castleAllowed;
+			if(currentlySelectedPiece instanceof King)
+				storedCastleAllowed = ((King)(currentlySelectedPiece)).castleAllowed;
+			Rook rook = null;
 			if (castle) {
-
-
-				doCastle(currentlySelectedPiece, column, row);
+				rook = doCastle(currentlySelectedPiece, column, row);
 			}
 			else {
 				ChessGame.currentPlayer.makeMove(currentlySelectedPiece, new Position(column, row));
@@ -301,8 +309,23 @@ public class ChessBoard {
 			if (currentlySelectedPiece  instanceof King) {
 				((King)(currentlySelectedPiece )).castleAllowed = false;
 			}
-
-
+			Move theMove = new Move(new Position(column,row),currentlySelectedPiece);
+			theMove.isCastle = castle;
+			Undo.lastWhiteMoves.add(0,new MoveInfo(theMove, oldOccupant, storedCastleAllowed, storedHasCastled, rook,oldRow,oldColumn, oldWhite, oldBlack));// :(
+			// ^^^ One of the nastiest lines i've seem recently
+			try {
+				System.out.println("lolzers " + ChessGame.swagger.piece + " " + ChessGame.swagger.position.column + " " + ChessGame.swagger.position.row);
+				System.out.println("lolzers " + currentlySelectedPiece + " " + column + " " + row);
+				
+				if (currentlySelectedPiece == ChessGame.swagger.piece && column == ChessGame.swagger.position.column && row == ChessGame.swagger.position.row) {
+					ChessGame.itWorked = true;
+				}
+				else ChessGame.itWorked = false;
+			}
+			catch (NullPointerException e) {
+				e.printStackTrace();
+				ChessGame.itWorked = false;
+			}
 			ResetSelection();
 			ChessGame.UpdateGame();
 		}
@@ -310,6 +333,8 @@ public class ChessBoard {
 		//Reset all of the UI for selection
 		ResetSelection();
 	}
+
+
 
 	public static void undoCastle(ChessPiece piece, Rook rook) {
 
@@ -457,16 +482,17 @@ public class ChessBoard {
 	}
 	public static void setChessPiece(int x, int y, ChessPiece piece) { //sets a chess piece at designated location
 		//Set the occupant for that position
+		if (piece != null) piece.dead = false;
 		pieces[x][y] = piece;
 		tiles[x][y].removeOccupant();
 		tiles[x][y].setOccupant(pieces[x][y]);
 		if (piece != null) {
 			try {
 				Player player = piece.player;
-				if (!player.getMyTeam().contains(piece)) {
+				/*if (!player.getMyTeam().contains(piece)) {
 					player.getMyTeam().add(piece); //adds it to the players list of people on team if not already there
 					//right now this doesn't actualyl do anything since getMyTeam() doesn't return a reference.  But it should eventually hopefully...
-				}
+				}*/
 
 				//adds the piece to piece-type specific lists if not already present
 				if (piece instanceof Pawn) {
@@ -500,6 +526,7 @@ public class ChessBoard {
 					}
 				}
 
+
 			}
 			catch (NullPointerException e) {
 				//e.printStackTrace();
@@ -508,7 +535,9 @@ public class ChessBoard {
 	}
 
 	public static ChessPiece removeChessPiece(int x, int y) {	//removes the piece at that position from the board	
+
 		ChessPiece piece = pieces[x][y];
+		piece.dead = true;
 		pieces[x][y] = null;
 		tiles[x][y].removeOccupant();
 		return piece;
@@ -526,6 +555,17 @@ public class ChessBoard {
 		return pieces[column][row] != null;
 	}
 
+	public static boolean isThreatened(int column, int row, Player opposingPlayer) {
+		for (ChessPiece piece : opposingPlayer.myTeam) {
+			for (Position pos : piece.possibleMoves()) {
+				if (pos.column == column && pos.row == row) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public static void move(ChessPiece piece, Position pos)  { //moves a piece to the desired position.  Replaces anyone already in that position
 
 
@@ -537,10 +577,12 @@ public class ChessBoard {
 			setChessPiece(pos.column, pos.row, piece);
 			piece.setPosition(new Position(pos.column, pos.row));
 			if (thing != null) {
-				
+				thing.dead = true;
 				thing.player.refreshArrayLists(); //if you killed a piece, update the dying piece's player's list of pieces
+
 			}
 			if (piece instanceof Pawn) { //pawn promotion code
+
 				if ((piece.isOnWhiteTeam && pos.row == 7) || (!piece.isOnWhiteTeam && pos.row == 0)) {
 					Queen queen = new Queen(pos.column, pos.row, piece.isOnWhiteTeam);
 					queen.player = ChessGame.currentPlayer;

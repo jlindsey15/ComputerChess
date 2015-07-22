@@ -39,6 +39,7 @@ public class Player {
 	public  ArrayList<Queen> myQueens = new ArrayList<Queen>();
 	public  ArrayList<King> myKings = new ArrayList<King>();
 	public ArrayList<Knight> myKnights = new ArrayList<Knight>();
+	public ArrayList<ChessPiece> myTeam = new ArrayList<ChessPiece>();
 
 
 	public Player(boolean whiteTeam) { //constructor
@@ -51,6 +52,7 @@ public class Player {
 			if (piece instanceof Knight) myKnights.add((Knight)piece);
 			if (piece instanceof King) myKings.add((King)piece);
 			if (piece instanceof Queen) myQueens.add((Queen)piece);
+			myTeam.add(piece);
 			piece.player = this;
 			
 		}
@@ -110,6 +112,7 @@ public class Player {
 		else if (thing instanceof Queen) myQueens.add((Queen)thing);
 		else if (thing instanceof King) myKings.add((King)thing);
 		else if (thing instanceof Bishop) myBishops.add((Bishop)thing);
+		myTeam.add(piece);
 
 	}
 
@@ -120,7 +123,7 @@ public class Player {
 		}
 
 		else {
-			for (ChessPiece oppPiece : opponent.getMyTeam()) {
+			for (ChessPiece oppPiece : opponent.myTeam) {
 
 				for (Position movePosition : oppPiece.possibleMoves()) { //simmulate all possible opponent moves
 					//used to restore the board back to original state after "preview" of opponent move
@@ -161,7 +164,7 @@ public class Player {
 			return false;
 		}
 		else {
-			for (ChessPiece oppPiece : opponent.getMyTeam()) {
+			for (ChessPiece oppPiece : opponent.myTeam) {
 				for (Position movePosition : oppPiece.possibleMoves()) { //simulate all possible opponent moves
 					//used to restore the board back to original state after "preview" of opponent move
 					ChessPiece[][] oldBoard = new ChessPiece[8][8];
@@ -199,7 +202,7 @@ public class Player {
 	public boolean opponentIsInCheck() { 
 		//checks whether you could attack the opponent's king
 
-		for (ChessPiece piece : getMyTeam()) {
+		for (ChessPiece piece : myTeam) {
 
 			for (Position movePosition : piece.possibleMoves()) {
 				//check every one of the player's possible moves
@@ -285,11 +288,11 @@ public class Player {
 	public static int evaluateMobility(ChessPiece board[][], Player player) {
 		//evaluates mobility with respect to player using possible moves as the heuristic
 		int counter = 0;
-		for (ChessPiece piece : player.getMyTeam()) {
+		for (ChessPiece piece : player.myTeam) {
 			ArrayList<Position> moves = piece.removeDangerMoves(piece.possibleMoves());
 			counter += moves.size();
 		}
-		for (ChessPiece piece : player.opponent.getMyTeam()) {
+		for (ChessPiece piece : player.opponent.myTeam) {
 			ArrayList<Position> moves = piece.removeDangerMoves(piece.possibleMoves());
 			counter -= moves.size();
 		}
@@ -499,6 +502,7 @@ public class Player {
 
 	public static int lazyEval(ChessPiece board[][], Player player, int alpha, int beta) {
 		//returns prematurely if the evaluation is definitely going to be less than alpha
+		
 		int counter = evaluateMaterial(board, player) + evaluatePieceSquare(board, player);
 
 		//bonus for castling:
@@ -545,12 +549,13 @@ public class Player {
 
 		
 		ArrayList<Move> moves = new ArrayList<Move>();
-		for (ChessPiece piece : player.getMyTeam())  {
+		for (ChessPiece piece : player.myTeam)  {
 			for (Position pos : piece.possibleMoves()) 
 			{
 				//We allow danger moves since the computer will never pick them anyway
-				Move theMove = new Move(pos, piece);
-				if (ChessBoard.isOccupied(theMove.position.column,  theMove.position.row)) {
+				
+				if (ChessBoard.isOccupied(pos.column,  pos.row)) {
+					Move theMove = new Move(pos, piece);
 					moves.add(theMove);
 				}
 			}
