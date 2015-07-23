@@ -6,3 +6,5 @@ A computer chess program.  The difficulty can be adjusted by setting the time th
 Uses standard techniques for chess AIs (e.g. minimax algorithm, piece-square tables, etc.) and has been (hopefully!)
 optimized somewhat by the evolutionary simulation found at http://github.com/jlindsey15/ChessLearning
 
+Note: Ctrl + Shift + click to undo a move
+
